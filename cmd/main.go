@@ -1,3 +1,4 @@
+// Package main starts the app.
 package main
 
 import (
@@ -5,22 +6,34 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"gopkg.in/yaml.v2"
-
-	"github.com/go-chi/chi"
-
+	"path/filepath"
 	"sber_test/internal/handlers"
 	"sber_test/internal/repo/cache"
 	"sber_test/internal/service"
+	"strings"
+	"time"
+
+	"github.com/go-chi/chi"
+	"gopkg.in/yaml.v2"
 )
 
+// Config struct.
 type Config struct {
-	Port int `yaml:"port"`
+	Port int `yml:"port"`
 }
 
+// BasePath - safe path.
+const BasePath = "C:\\GolangProgs\\sber_test"
+
 func loadConfig(path string) Config {
-	b, err := os.ReadFile(path)
+	absPath := filepath.Join(BasePath, path)
+	cleanPath := filepath.Clean(absPath)
+
+	if !strings.HasPrefix(cleanPath, BasePath) {
+		log.Fatalf("invalid path: %v", cleanPath)
+	}
+
+	b, err := os.ReadFile(cleanPath)
 	if err != nil {
 		log.Fatalf("failed to read config: %v", err)
 	}
@@ -33,17 +46,31 @@ func loadConfig(path string) Config {
 
 func main() {
 	cfg := loadConfig("config.yml")
+	addr := fmt.Sprintf(":%d", cfg.Port)
 
-	memCache := cache.New()
+	// Создаём экземпляр кеша (предположительно, Cache уже настроен)
+	c := cache.New()
 
-	svc := service.New(memCache)
+	// Создаем экземпляр Service, передавая в него кеш
+	svc := service.New(c)
 
+	// Создаём новый маршрутизатор chi
 	r := chi.NewRouter()
+
+	// Регистрируем маршруты через handler
 	handlers.RegisterRoutes(r, svc)
 
-	addr := fmt.Sprintf(":%d", cfg.Port)
-	log.Printf("starting server on %s", addr)
-	if err := http.ListenAndServe(addr, r); err != nil {
-		log.Fatalf("server failed: %v", err)
+	// Настроить сервер
+	server := &http.Server{
+		Addr:         addr,
+		Handler:      r,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  30 * time.Second,
+	}
+
+	log.Printf("Server is running on %s\n", addr)
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
 	}
 }

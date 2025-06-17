@@ -1,105 +1,91 @@
+version: "2"
 run:
-     concurrency: 4
-     timeout: 1m
-     tests: false
-     issues-exit-code: 0
-     go: '1.21'
-output:
-     format: colored-line-number
-issues:
-     max-issues-per-linter: 1000
-     max-same-issues: 1000
-     exclude-use-default: false
-   
-linters-settings:
-     prealloc:
-       for-loops: true
-   
-     stylecheck:
-       go: "1.21"
-       checks: ["all"]
-   
-     staticcheck:
-       go: "1.21"
-       checks: ["all"]
-   
-     nolintlint:
-       allow-unused: true
-       require-explanation: true
-       require-specific: true
-   
-     gosimple:
-       go: "1.21"
-       checks: ["all"]
-   
-     gocyclo:
-       min-complexity: 20
-   
-     gocritic:
-       disabled-checks:
-         - hugeParam
-       enabled-tags:
-         - diagnostic
-         - style
-         - performance
-         - experimental
-         - opinionated
-   
-     dupl:
-       threshold: 70
-   
-     dogsled:
-       max-blank-identifiers: 2
-   
-     errcheck:
-       check-type-assertions: true
-       check-blank: true
-   
-     govet:
-       check-shadowing: true
-       enable-all: true
-       shadow:
-         strict: true
-   
-     funlen:
-       lines: 60
-       statements: 60
-       ignore-comments: true
-   
+  concurrency: 4
+  go: "1.21"
+  issues-exit-code: 0
+  tests: false
 linters:
-     disable-all: true
-     enable:
-       - bodyclose
-       - dogsled
-       - dupl
-       - errcheck
-       - forbidigo
-       - funlen
-       - gochecknoinits
-       - goconst
-       - gocritic
-       - gocyclo
-       - gofmt
-       - gomodguard
-       - revive
-       - gosec
-       - gosimple
-       - govet
-       - godot
-       - ineffassign
-       - misspell
-       - nakedret
-       - nolintlint
-       - exportloopref
-       - prealloc
-       - staticcheck
-       - stylecheck
-       - typecheck
-       - unconvert
-       - unparam
-       - unused
-       - whitespace
-   
-     presets:
-       - comment
-       - error
+  default: none
+  enable:
+    - bodyclose
+    - dogsled
+    - dupl
+    - dupword
+    - err113
+    - errcheck
+    - errorlint
+    - forbidigo
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - gomodguard
+    - gosec
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - nolintlint
+    - prealloc
+    - revive
+    - staticcheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+    - wrapcheck
+  settings:
+    dogsled:
+      max-blank-identifiers: 2
+    dupl:
+      threshold: 70
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    funlen:
+      lines: 60
+      statements: 60
+      ignore-comments: true
+    gocritic:
+      disabled-checks:
+        - hugeParam
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+        - experimental
+        - opinionated
+    gocyclo:
+      min-complexity: 20
+    govet:
+      enable-all: true
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+      allow-unused: true
+    prealloc:
+      for-loops: true
+    staticcheck:
+      checks:
+        - all
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  max-issues-per-linter: 1000
+  max-same-issues: 1000
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

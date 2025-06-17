@@ -7,6 +7,7 @@ import (
 	"sber_test/internal/service"
 )
 
+// Execute handles the loan calculation request and returns the response.
 func Execute(svc *service.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req service.ExecuteRequest
@@ -27,6 +28,9 @@ func Execute(svc *service.Service) http.HandlerFunc {
 			Result: resp,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(out)
+		if err := json.NewEncoder(w).Encode(out); err != nil {
+			http.Error(w, `{"error":"failed to encode data"}`, http.StatusInternalServerError)
+			return
+		}
 	}
 }
