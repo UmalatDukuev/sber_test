@@ -1,11 +1,14 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
+	"os"
+	"path/filepath"
+	"sber_test/internal/repo/cache"
 	"time"
-
-	"sber_test/repo/cache"
 )
 
 type Service struct {
@@ -46,25 +49,56 @@ type CacheItem struct {
 	ExecuteResponse
 }
 
+func loadProgramRates() (map[string]int, error) {
+	absPath, err := filepath.Abs("programs.json")
+	if err != nil {
+		return nil, fmt.Errorf("unable to get absolute path: %w", err)
+	}
+
+	data, err := os.ReadFile(absPath)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read programs.json: %w", err)
+	}
+
+	var result map[string]map[string]int
+	err = json.Unmarshal(data, &result)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling JSON: %w", err)
+	}
+
+	return result["program_rates"], nil
+}
+
 func (s *Service) Execute(req ExecuteRequest) (ExecuteResponse, int, error) {
+	programRates, err := loadProgramRates()
+	if err != nil {
+		return ExecuteResponse{}, 0, err
+	}
+
 	chosen := 0
+	var annualRate int
 	validPrograms := map[string]struct{}{
 		"salary":   {},
 		"military": {},
 		"base":     {},
 	}
 
-	for k := range req.Program {
+	for k, v := range req.Program {
 		if _, ok := validPrograms[k]; !ok {
 			return ExecuteResponse{}, 0, errors.New("unknown program: " + k)
 		}
-	}
-
-	for _, v := range req.Program {
 		if v {
 			chosen++
+			if k == "salary" {
+				annualRate = programRates["salary"]
+			} else if k == "military" {
+				annualRate = programRates["military"]
+			} else if k == "base" {
+				annualRate = programRates["base"]
+			}
 		}
 	}
+
 	if chosen == 0 {
 		return ExecuteResponse{}, 0, errors.New("choose program")
 	}
@@ -74,15 +108,6 @@ func (s *Service) Execute(req ExecuteRequest) (ExecuteResponse, int, error) {
 
 	if req.InitialPayment < 0.2*req.ObjectCost {
 		return ExecuteResponse{}, 0, errors.New("the initial payment should be more")
-	}
-
-	var annualRate int
-	if req.Program["salary"] {
-		annualRate = 8
-	} else if req.Program["military"] {
-		annualRate = 9
-	} else {
-		annualRate = 10
 	}
 
 	loanSum := req.ObjectCost - req.InitialPayment
@@ -111,7 +136,7 @@ func (s *Service) Execute(req ExecuteRequest) (ExecuteResponse, int, error) {
 	}
 
 	item := CacheItem{
-		ID:              len(s.cache.GetAll()) + 1,
+		ID:              len(s.cache.GetAll()),
 		ExecuteResponse: resp,
 	}
 	id := s.cache.Add(item)

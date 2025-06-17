@@ -5,16 +5,20 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
+	"sber_test/internal/repo/cache"
 	"sber_test/internal/service"
-	"sber_test/repo/cache"
 )
 
 func TestHandlers(t *testing.T) {
 	cacheService := cache.New()
 	svc := service.New(cacheService)
-
+	err := os.Chdir("../../")
+	if err != nil {
+		panic("failed to change directory: " + err.Error())
+	}
 	t.Run("Test GetCache", func(t *testing.T) {
 		handler := GetCache(svc)
 		cacheService.Add(service.CacheItem{ID: 1})

@@ -1,4 +1,4 @@
-package repo
+package cache
 
 import "sync"
 
@@ -17,7 +17,7 @@ func (c *Cache) Add(item interface{}) int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	id := len(c.data) + 1
+	id := len(c.data)
 	c.data = append(c.data, item)
 	return id
 }

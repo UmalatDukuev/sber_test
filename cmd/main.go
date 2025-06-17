@@ -11,8 +11,8 @@ import (
 	"github.com/go-chi/chi"
 
 	"sber_test/internal/handlers"
+	"sber_test/internal/repo/cache"
 	"sber_test/internal/service"
-	"sber_test/repo/cache"
 )
 
 type Config struct {

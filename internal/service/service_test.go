@@ -1,13 +1,18 @@
 package service
 
 import (
-	"sber_test/repo/cache"
+	"os"
+	"sber_test/internal/repo/cache"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestExecute(t *testing.T) {
+	err := os.Chdir("../../")
+	if err != nil {
+		panic("failed to change directory: " + err.Error())
+	}
 	c := cache.New()
 	s := New(c)
 
@@ -24,7 +29,7 @@ func TestExecute(t *testing.T) {
 
 	assert.Nil(t, err, "Expected no error")
 
-	assert.Greater(t, id, 0, "ID should be greater than 0")
+	assert.Equal(t, 0, id, "ID should be equal to 0")
 
 	assert.Equal(t, req.InitialPayment, resp.Params.InitialPayment, "InitialPayment should match")
 	assert.Equal(t, req.Months, resp.Params.Months, "Months should match")
@@ -133,7 +138,7 @@ func TestExecuteWithZeroObjectCost(t *testing.T) {
 	assert.Nil(t, err, "Expected no error")
 	assert.Equal(t, 0.0, resp.Aggregates.LoanSum, "Loan sum should be 0 when ObjectCost is 0")
 	assert.Equal(t, 0.0, resp.Aggregates.MonthlyPayment, "Monthly payment should be 0 when ObjectCost is 0")
-	assert.Greater(t, id, 0, "ID should be greater than 0")
+	assert.Equal(t, 0, id, "ID should be equal to 0")
 }
 
 func TestExecuteWithLargeObjectCost(t *testing.T) {
@@ -154,7 +159,7 @@ func TestExecuteWithLargeObjectCost(t *testing.T) {
 	assert.Nil(t, err, "Expected no error")
 	assert.Greater(t, resp.Aggregates.LoanSum, 0.0, "Loan sum should be positive")
 	assert.Greater(t, resp.Aggregates.MonthlyPayment, 0.0, "Monthly payment should be positive")
-	assert.Greater(t, id, 0, "ID should be greater than 0")
+	assert.Equal(t, 0, id, "ID should be equal to 0")
 }
 
 func TestExecuteWithNoProgram(t *testing.T) {
@@ -190,7 +195,7 @@ func TestExecuteWithLongTerm(t *testing.T) {
 	resp, id, err := s.Execute(req)
 
 	assert.Nil(t, err, "Expected no error")
-	assert.Greater(t, id, 0, "ID should be greater than 0")
+	assert.Equal(t, 0, id, "ID should be equal to 0")
 	assert.Equal(t, 9, resp.Aggregates.Rate, "Rate should be 9 for military program")
 	assert.Equal(t, 2000001.0, resp.Aggregates.LoanSum, "LoanSum should match")
 }
@@ -210,7 +215,7 @@ func TestCacheWithAddedItems(t *testing.T) {
 
 	_, id, err := s.Execute(req)
 	assert.Nil(t, err)
-	assert.Greater(t, id, 0, "ID should be greater than 0")
+	assert.Equal(t, 0, id, "ID should be equal to 0")
 
 	cacheItems := s.GetAll()
 	assert.NotEmpty(t, cacheItems, "Cache should not be empty")
